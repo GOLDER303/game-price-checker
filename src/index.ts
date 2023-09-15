@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import axios from "axios"
 import * as cheerio from "cheerio"
 import { exit } from "process"

@@ -2,7 +2,10 @@
   "name": "gamespricefetching",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./build/index.js",
+  "bin": {
+    "checkprice": "./build/index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "ts:watch": "npx tsc -w",
