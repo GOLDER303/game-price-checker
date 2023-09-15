@@ -24,6 +24,11 @@ const rl = readline.createInterface({ input: process.stdin, output: process.stdo
 const main = async () => {
     const gameName = await rl.question("What game do you want to check the price? ")
 
+    if (!gameName) {
+        console.log("No game name given!")
+        exit(1)
+    }
+
     const [officialPrice, keyshopsPrice] = await getPrice(gameName)
 
     console.log(`Official: ${officialPrice}`)
