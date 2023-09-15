@@ -2,8 +2,8 @@
 
 import axios from "axios"
 import * as cheerio from "cheerio"
+import { program } from "commander"
 import { exit } from "process"
-import * as readline from "readline/promises"
 
 const getPrice = async (gameName: string) => {
     const response = await axios.get(`https://gg.deals/game/${gameName}`)
@@ -19,11 +19,7 @@ const getPrice = async (gameName: string) => {
     return prices
 }
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-
-const main = async () => {
-    const gameName = await rl.question("What game do you want to check the price? ")
-
+const printSingleGamePrice = async (gameName: string) => {
     if (!gameName) {
         console.log("No game name given!")
         exit(1)
@@ -37,4 +33,11 @@ const main = async () => {
     exit()
 }
 
-main()
+program
+    .arguments("<gameName>")
+    .description("Specify a game name")
+    .action((gameName) => {
+        printSingleGamePrice(gameName)
+    })
+
+program.parse(process.argv)
