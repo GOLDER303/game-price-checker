@@ -77,7 +77,49 @@ const printSingleGamePrice = async (gameName: string) => {
     exit()
 }
 
-const handleInputFile = async (inputFilePath: string) => {
+const alignOutputTableColumnWidths = (lines: string[]): string[] => {
+    const columnWidths: number[] = []
+
+    lines.forEach((line) => {
+        const columns = line.split("|").map((col) => col.trim())
+
+        columns.forEach((col, colIndex) => {
+            columnWidths[colIndex] = Math.max(columnWidths[colIndex] || 0, col.length)
+        })
+    })
+
+    let separatingLine = " |"
+
+    columnWidths.forEach((columnWidth) => {
+        if (columnWidth == 0) {
+            return
+        }
+
+        separatingLine += "-".repeat(columnWidth + 2)
+        separatingLine += "|"
+    })
+
+    const equalizedLines = lines.map((line, index) => {
+        if (index === 1) {
+            return ""
+        }
+
+        const columns = line.split("|").map((col) => col.trim())
+
+        const paddedColumns = columns.map((col, index) => {
+            const width = columnWidths[index]
+            return col.padEnd(width)
+        })
+
+        return `${paddedColumns.join(" | ")}`
+    })
+
+    equalizedLines[1] = separatingLine
+
+    return equalizedLines
+}
+
+const handleInputFile = async (inputFilePath: string, outputFormat: "LIST" | "TABLE") => {
     const inputFile = readFileSync(inputFilePath).toString()
     const inputFileName = path.parse(path.basename(inputFilePath)).name
 
@@ -89,6 +131,10 @@ const handleInputFile = async (inputFilePath: string) => {
     }
 
     const outputLines: string[] = []
+
+    if (outputFormat == "TABLE") {
+        outputLines.push("| Game Name | Official Price | Keyshops Price |")
+    }
 
     for (const line of lines) {
         let gameName = line
@@ -103,17 +149,28 @@ const handleInputFile = async (inputFilePath: string) => {
         }
         const [officialPrice, keyshopsPrice] = gamePrice
 
-        outputLines.push(`${line} -> ${officialPrice} | ${keyshopsPrice}`)
+        if (outputFormat == "LIST") {
+            outputLines.push(`- ${gameName} -> ${officialPrice} | ${keyshopsPrice}`)
+        } else {
+            outputLines.push(`| ${gameName} | ${officialPrice} | ${keyshopsPrice} |`)
+        }
+    }
+
+    let processedOutputLines = outputLines
+
+    if (outputFormat == "TABLE") {
+        processedOutputLines = alignOutputTableColumnWidths(outputLines)
     }
 
     const outFile = path.join(path.dirname(inputFilePath), `${inputFileName}_out${path.extname(inputFilePath)}`)
 
-    writeFileSync(outFile, outputLines.join("\n"))
+    writeFileSync(outFile, processedOutputLines.join("\n"))
 }
 
 program
     .option("-g, --game-name <gameName>")
     .option("-i, --input-file-path <inputFilePath>")
+    .option("-o, --output-format <LIST|TABLE>")
     .description("Specify a game name")
 
 program.parse(process.argv)
@@ -125,6 +182,7 @@ if (process.argv.length < 3) {
 const options = program.opts<{
     gameName: string | undefined
     inputFilePath: string | undefined
+    outputFormat: string | undefined
 }>()
 
 if (options.gameName && options.inputFilePath) {
@@ -138,5 +196,9 @@ if (options.gameName && options.inputFilePath) {
 if (options.gameName) {
     printSingleGamePrice(options.gameName)
 } else if (options.inputFilePath) {
-    handleInputFile(options.inputFilePath)
+    if (options.outputFormat?.toUpperCase() == "TABLE") {
+        handleInputFile(options.inputFilePath, "TABLE")
+    } else {
+        handleInputFile(options.inputFilePath, "LIST")
+    }
 }
