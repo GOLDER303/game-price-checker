@@ -3,6 +3,8 @@
 import axios, { AxiosError, AxiosResponse } from "axios"
 import * as cheerio from "cheerio"
 import { program } from "commander"
+import { readFileSync, writeFileSync } from "fs"
+import path from "path"
 import { exit } from "process"
 
 const isStringTuple = (arr: any): arr is [string, string] => {
@@ -73,6 +75,42 @@ const printSingleGamePrice = async (gameName: string) => {
     console.log(`Keyshops: ${keyshopsPrice}`)
 
     exit()
+}
+
+const handleInputFile = async (inputFilePath: string) => {
+    const file = readFileSync(inputFilePath).toString()
+
+    let lines: string[]
+    if (file.includes("\r")) {
+        lines = file.split("\r\n")
+    } else {
+        lines = file.split("\n")
+    }
+
+    const outputLines: string[] = []
+
+    for (const line of lines) {
+        let gameName = line
+
+        if (line.startsWith("-")) {
+            gameName = line.substring(1, line.length)
+        }
+
+        const gamePrice = await getGamePrice(gameName)
+        if (!gamePrice) {
+            continue
+        }
+        const [officialPrice, keyshopsPrice] = gamePrice
+
+        outputLines.push(`${line} -> ${officialPrice} | ${keyshopsPrice}`)
+    }
+
+    const outFile = path.join(
+        path.dirname(inputFilePath),
+        `${path.basename(inputFilePath)}_out${path.extname(inputFilePath)}`
+    )
+
+    writeFileSync(outFile, outputLines.join("\n"))
 }
 
 program
