@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ts:watch": "npx tsc -w",
+    "ts:watch": "npx tsc -w --sourceMap",
     "start": "node build/index.js"
   },
   "keywords": [],
