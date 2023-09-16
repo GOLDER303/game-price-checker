@@ -9,8 +9,19 @@ const isStringTuple = (arr: any): arr is [string, string] => {
     return Array.isArray(arr) && arr.length === 2 && typeof arr[0] === "string" && typeof arr[1] === "string"
 }
 
+const normalizeGameName = (input: string): string => {
+    const trimmedInput = input.trim()
+    return trimmedInput
+        .replace(/^\[\[(.*?)\]\]$/, "$1")
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .replace(/ /g, "-")
+        .replace(/--/g, "-")
+        .toLowerCase()
+}
+
 const getPrice = async (gameName: string) => {
-    const response = await axios.get(`https://gg.deals/game/${gameName}`)
+    const normalizedGameName = normalizeGameName(gameName)
+    const response = await axios.get(`https://gg.deals/game/${normalizedGameName}`)
     const data = response.data
 
     const $ = cheerio.load(data)
@@ -21,7 +32,7 @@ const getPrice = async (gameName: string) => {
         .get()
 
     if (!isStringTuple(prices)) {
-        console.error(`Error while parsing game page data. Game: "${gameName}"`)
+        console.error(`Error while parsing game page data. Game: "${normalizedGameName}"`)
         return null
     }
 
