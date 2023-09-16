@@ -5,6 +5,10 @@ import * as cheerio from "cheerio"
 import { program } from "commander"
 import { exit } from "process"
 
+const isStringTuple = (arr: any): arr is [string, string] => {
+    return Array.isArray(arr) && arr.length === 2 && typeof arr[0] === "string" && typeof arr[1] === "string"
+}
+
 const getPrice = async (gameName: string) => {
     const response = await axios.get(`https://gg.deals/game/${gameName}`)
     const data = response.data
@@ -15,6 +19,11 @@ const getPrice = async (gameName: string) => {
         .find(".game-info-price-col span.price-inner.numeric")
         .map((_, element) => $(element).text())
         .get()
+
+    if (!isStringTuple(prices)) {
+        console.error(`Error while parsing game page data. Game: "${gameName}"`)
+        return null
+    }
 
     return prices
 }
