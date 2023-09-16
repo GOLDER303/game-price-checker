@@ -19,7 +19,7 @@ const normalizeGameName = (input: string): string => {
         .toLowerCase()
 }
 
-const getPrice = async (gameName: string) => {
+const getGamePrice = async (gameName: string): Promise<[string, string] | null> => {
     const normalizedGameName = normalizeGameName(gameName)
     const response = await axios.get(`https://gg.deals/game/${normalizedGameName}`)
     const data = response.data
@@ -45,7 +45,12 @@ const printSingleGamePrice = async (gameName: string) => {
         exit(1)
     }
 
-    const [officialPrice, keyshopsPrice] = await getPrice(gameName)
+    const gamePrice = await getGamePrice(gameName)
+    if (!gamePrice) {
+        exit()
+    }
+
+    const [officialPrice, keyshopsPrice] = gamePrice
 
     console.log(`Official: ${officialPrice}`)
     console.log(`Keyshops: ${keyshopsPrice}`)
