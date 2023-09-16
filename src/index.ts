@@ -78,13 +78,14 @@ const printSingleGamePrice = async (gameName: string) => {
 }
 
 const handleInputFile = async (inputFilePath: string) => {
-    const file = readFileSync(inputFilePath).toString()
+    const inputFile = readFileSync(inputFilePath).toString()
+    const inputFileName = path.parse(path.basename(inputFilePath)).name
 
     let lines: string[]
-    if (file.includes("\r")) {
-        lines = file.split("\r\n")
+    if (inputFile.includes("\r")) {
+        lines = inputFile.split("\r\n")
     } else {
-        lines = file.split("\n")
+        lines = inputFile.split("\n")
     }
 
     const outputLines: string[] = []
@@ -105,10 +106,7 @@ const handleInputFile = async (inputFilePath: string) => {
         outputLines.push(`${line} -> ${officialPrice} | ${keyshopsPrice}`)
     }
 
-    const outFile = path.join(
-        path.dirname(inputFilePath),
-        `${path.basename(inputFilePath)}_out${path.extname(inputFilePath)}`
-    )
+    const outFile = path.join(path.dirname(inputFilePath), `${inputFileName}_out${path.extname(inputFilePath)}`)
 
     writeFileSync(outFile, outputLines.join("\n"))
 }
