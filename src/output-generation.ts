@@ -1,8 +1,12 @@
-import { readFileSync, writeFileSync } from "fs"
-import path from "path"
+import { writeFileSync } from "fs"
 import { exit } from "process"
 import { getGamePrice } from "./data-fetching"
-import { alignOutputTableColumnWidths } from "./output-generation-utils"
+import {
+    alignOutputTableColumnWidths,
+    generateOutputFilePath,
+    getLinesFromFile,
+    processLines,
+} from "./output-generation-utils"
 
 export const printSingleGamePrice = async (gameName: string) => {
     if (!gameName) {
@@ -24,49 +28,41 @@ export const printSingleGamePrice = async (gameName: string) => {
 }
 
 export const generateOutputFile = async (inputFilePath: string, outputFormat: "LIST" | "TABLE") => {
-    const inputFile = readFileSync(inputFilePath).toString()
-    const inputFileName = path.parse(path.basename(inputFilePath)).name
+    const lines = getLinesFromFile(inputFilePath)
 
-    let lines: string[]
-    if (inputFile.includes("\r")) {
-        lines = inputFile.split("\r\n")
-    } else {
-        lines = inputFile.split("\n")
+    let outputLines: string[]
+
+    switch (outputFormat) {
+        case "TABLE":
+            outputLines = await generateOutputTable(lines)
+            break
+
+        default:
+            outputLines = await generateOutputList(lines)
+            break
     }
 
-    const outputLines: string[] = []
+    const outFilePath = generateOutputFilePath(inputFilePath)
+    writeFileSync(outFilePath, outputLines.join("\n"))
+}
 
-    if (outputFormat == "TABLE") {
-        outputLines.push("| Game Name | Official Price | Keyshops Price |")
-    }
+const generateOutputList = async (lines: string[]): Promise<string[]> => {
+    const outputLines = await processLines(lines, (gameName, officialPrice, keyshopsPrice) => {
+        return `- ${gameName} -> ${officialPrice} | ${keyshopsPrice}`
+    })
 
-    for (const line of lines) {
-        let gameName = line
+    return outputLines
+}
 
-        if (line.startsWith("-")) {
-            gameName = line.substring(1, line.length)
-        }
+const generateOutputTable = async (lines: string[]): Promise<string[]> => {
+    const tableHead = [
+        "| Game Name | Official Price | Keyshops Price |",
+        "|-----------|----------------|----------------|",
+    ]
 
-        const gamePrice = await getGamePrice(gameName)
-        if (!gamePrice) {
-            continue
-        }
-        const [officialPrice, keyshopsPrice] = gamePrice
+    const outputLines = await processLines(lines, (gameName, officialPrice, keyshopsPrice) => {
+        return `| ${gameName} | ${officialPrice} | ${keyshopsPrice} |`
+    })
 
-        if (outputFormat == "LIST") {
-            outputLines.push(`- ${gameName} -> ${officialPrice} | ${keyshopsPrice}`)
-        } else {
-            outputLines.push(`| ${gameName} | ${officialPrice} | ${keyshopsPrice} |`)
-        }
-    }
-
-    let processedOutputLines = outputLines
-
-    if (outputFormat == "TABLE") {
-        processedOutputLines = alignOutputTableColumnWidths(outputLines)
-    }
-
-    const outFile = path.join(path.dirname(inputFilePath), `${inputFileName}_out${path.extname(inputFilePath)}`)
-
-    writeFileSync(outFile, processedOutputLines.join("\n"))
+    return alignOutputTableColumnWidths(tableHead.concat(outputLines))
 }
