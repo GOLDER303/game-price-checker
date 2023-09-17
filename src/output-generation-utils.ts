@@ -9,7 +9,7 @@ export const alignOutputTableColumnWidths = (lines: string[]): string[] => {
         })
     })
 
-    let separatingLine = " |"
+    let separatingLine = "|"
 
     columnWidths.forEach((columnWidth) => {
         if (columnWidth == 0) {
@@ -32,7 +32,8 @@ export const alignOutputTableColumnWidths = (lines: string[]): string[] => {
             return col.padEnd(width)
         })
 
-        return paddedColumns.join(" | ")
+        const paddedColumnsLine = paddedColumns.join(" | ")
+        return paddedColumnsLine.substring(1, paddedColumnsLine.length - 1)
     })
 
     equalizedLines[1] = separatingLine
