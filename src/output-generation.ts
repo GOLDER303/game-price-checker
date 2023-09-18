@@ -6,6 +6,7 @@ import {
     generateOutputFilePath,
     getLinesFromFile,
     processLines,
+    sortTableLines,
 } from "./output-generation-utils"
 
 export const printSingleGamePrice = async (gameName: string) => {
@@ -27,14 +28,18 @@ export const printSingleGamePrice = async (gameName: string) => {
     exit()
 }
 
-export const generateOutputFile = async (inputFilePath: string, outputFormat: "LIST" | "TABLE") => {
+export const generateOutputFile = async (
+    inputFilePath: string,
+    outputFormat: "LIST" | "TABLE",
+    sortBy: "GAME_NAME" | "PRICE" | undefined
+) => {
     const lines = getLinesFromFile(inputFilePath)
 
     let outputLines: string[]
 
     switch (outputFormat) {
         case "TABLE":
-            outputLines = await generateOutputTable(lines)
+            outputLines = await generateOutputTable(lines, sortBy)
             break
 
         default:
@@ -54,7 +59,7 @@ const generateOutputList = async (lines: string[]): Promise<string[]> => {
     return outputLines
 }
 
-const generateOutputTable = async (lines: string[]): Promise<string[]> => {
+const generateOutputTable = async (lines: string[], sortBy: "GAME_NAME" | "PRICE" | undefined): Promise<string[]> => {
     const tableHead = [
         "| Game Name | Official Price | Keyshops Price |",
         "|-----------|----------------|----------------|",
@@ -64,5 +69,7 @@ const generateOutputTable = async (lines: string[]): Promise<string[]> => {
         return `| ${gameName} | ${officialPrice} | ${keyshopsPrice} |`
     })
 
-    return alignOutputTableColumnWidths(tableHead.concat(outputLines))
+    const alignedOutputTableLines = alignOutputTableColumnWidths(tableHead.concat(outputLines))
+
+    return sortTableLines(alignedOutputTableLines, sortBy)
 }
