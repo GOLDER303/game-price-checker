@@ -32,6 +32,16 @@ if (options.gameName && options.inputFilePath) {
     exit(1)
 }
 
+if (
+    options.outputFormat &&
+    options.outputFormat.toUpperCase() != "LIST" &&
+    options.outputFormat.toUpperCase() != "TABLE"
+) {
+    console.warn(
+        `Warning: Specified output format "${options.outputFormat.toUpperCase()}" does not exists. Possible output formats: "LIST", "TABLE". Defaulting to "LIST".`
+    )
+}
+
 let processedSortBy: "GAME_NAME" | "PRICE" | undefined
 
 if (options.sortBy) {
@@ -47,13 +57,5 @@ if (options.sortBy) {
 if (options.gameName) {
     printSingleGamePrice(options.gameName)
 } else if (options.inputFilePath) {
-    switch (options.outputFormat?.toUpperCase()) {
-        case "TABLE":
-            generateOutputFile(options.inputFilePath, "TABLE", processedSortBy)
-            break
-
-        default:
-            generateOutputFile(options.inputFilePath, "LIST", processedSortBy)
-            break
-    }
+    generateOutputFile(options.inputFilePath, options.outputFormat, processedSortBy)
 }

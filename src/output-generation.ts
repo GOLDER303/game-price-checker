@@ -30,14 +30,14 @@ export const printSingleGamePrice = async (gameName: string) => {
 
 export const generateOutputFile = async (
     inputFilePath: string,
-    outputFormat: "LIST" | "TABLE",
+    outputFormat: string | undefined,
     sortBy: "GAME_NAME" | "PRICE" | undefined
 ) => {
     const lines = getLinesFromFile(inputFilePath)
 
     let outputLines: string[]
 
-    switch (outputFormat) {
+    switch (outputFormat?.toUpperCase()) {
         case "TABLE":
             outputLines = await generateOutputTable(lines, sortBy)
             break
