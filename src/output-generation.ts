@@ -5,6 +5,7 @@ import {
     alignOutputTableColumnWidths,
     generateOutputFilePath,
     getLinesFromFile,
+    markBetterPrice,
     processLines,
     sortTableLines,
 } from "./output-generation-utils"
@@ -31,7 +32,8 @@ export const printSingleGamePrice = async (gameName: string) => {
 export const generateOutputFile = async (
     inputFilePath: string,
     outputFormat: string | undefined,
-    sortBy: "GAME_NAME" | "PRICE" | undefined
+    sortBy: "GAME_NAME" | "PRICE" | undefined,
+    betterPriceMark: string | undefined
 ) => {
     const lines = getLinesFromFile(inputFilePath)
 
@@ -39,7 +41,7 @@ export const generateOutputFile = async (
 
     switch (outputFormat?.toUpperCase()) {
         case "TABLE":
-            outputLines = await generateOutputTable(lines, sortBy)
+            outputLines = await generateOutputTable(lines, sortBy, betterPriceMark)
             break
 
         default:
@@ -59,15 +61,23 @@ const generateOutputList = async (lines: string[]): Promise<string[]> => {
     return outputLines
 }
 
-const generateOutputTable = async (lines: string[], sortBy: "GAME_NAME" | "PRICE" | undefined): Promise<string[]> => {
+const generateOutputTable = async (
+    lines: string[],
+    sortBy: "GAME_NAME" | "PRICE" | undefined,
+    betterPriceMark: string | undefined
+): Promise<string[]> => {
     const tableHead = [
         "| Game Name | Official Price | Keyshops Price |",
         "|-----------|----------------|----------------|",
     ]
 
-    const outputLines = await processLines(lines, (gameName, officialPrice, keyshopsPrice) => {
+    let outputLines = await processLines(lines, (gameName, officialPrice, keyshopsPrice) => {
         return `| ${gameName} | ${officialPrice} | ${keyshopsPrice} |`
     })
+
+    if (betterPriceMark) {
+        outputLines = markBetterPrice(outputLines, betterPriceMark)
+    }
 
     const alignedOutputTableLines = alignOutputTableColumnWidths(tableHead.concat(outputLines))
 

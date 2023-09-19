@@ -9,6 +9,7 @@ program
     .option("-i, --input-file-path <inputFilePath>")
     .option("-o, --output-format <LIST|TABLE>")
     .option("-s, --sort-by <GAME_NAME|PRICE>")
+    .option("-m, --better-price-mark [mark_symbol]")
     .description("Specify a game name")
 
 program.parse(process.argv)
@@ -22,6 +23,7 @@ const options = program.opts<{
     inputFilePath: string | undefined
     outputFormat: string | undefined
     sortBy: string | undefined
+    betterPriceMark: boolean | string | undefined
 }>()
 
 if (options.gameName && options.inputFilePath) {
@@ -54,8 +56,12 @@ if (options.sortBy) {
     processedSortBy = options.sortBy
 }
 
+if (typeof options.betterPriceMark === "boolean") {
+    options.betterPriceMark = "^"
+}
+
 if (options.gameName) {
     printSingleGamePrice(options.gameName)
 } else if (options.inputFilePath) {
-    generateOutputFile(options.inputFilePath, options.outputFormat, processedSortBy)
+    generateOutputFile(options.inputFilePath, options.outputFormat, processedSortBy, options.betterPriceMark)
 }

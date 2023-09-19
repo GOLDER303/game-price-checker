@@ -140,3 +140,29 @@ export const sortTableLines = (tableLines: string[], sortBy: "PRICE" | "GAME_NAM
 
     return tableHeader.concat(sortedTable)
 }
+
+export const markBetterPrice = (lines: string[], markSymbol: string = "^"): string[] => {
+    const markedLines = lines.map((line) => {
+        const priceRegex = /(\d+,\d+) zł/g
+        const priceMatches = line.match(priceRegex)
+
+        if (!priceMatches) {
+            return line
+        }
+
+        const officialPrice = parseFloat(priceMatches[0].replace(",", "."))
+        const keyshopsPrice = parseFloat(priceMatches[1].replace(",", "."))
+
+        if (officialPrice < keyshopsPrice) {
+            return line.replace(priceMatches[0], priceMatches[0] + markSymbol)
+        } else if (officialPrice > keyshopsPrice) {
+            return line.replace(priceMatches[1], priceMatches[1] + markSymbol)
+        } else {
+            return line
+                .replace(priceMatches[0], priceMatches[0] + markSymbol)
+                .replace(priceMatches[1], priceMatches[1] + markSymbol)
+        }
+    })
+
+    return markedLines
+}
