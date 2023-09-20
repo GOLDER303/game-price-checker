@@ -26,7 +26,7 @@ export const alignOutputTableColumnWidths = (lines: string[]): string[] => {
 
     const equalizedLines = lines.map((line, index) => {
         if (index === 1) {
-            return ""
+            return separatingLine
         }
 
         const columns = line.split("|").map((col) => col.trim())
@@ -39,8 +39,6 @@ export const alignOutputTableColumnWidths = (lines: string[]): string[] => {
         const paddedColumnsLine = paddedColumns.join(" | ")
         return paddedColumnsLine.substring(1, paddedColumnsLine.length - 1)
     })
-
-    equalizedLines[1] = separatingLine
 
     return equalizedLines
 }
