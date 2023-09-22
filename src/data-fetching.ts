@@ -3,6 +3,11 @@ import * as cheerio from "cheerio"
 import { isStringTuple, normalizeGameName } from "./data-fetching-utils"
 
 export const getGamePrice = async (gameName: string): Promise<[string, string] | null> => {
+    if (!gameName) {
+        console.error("Game name is empty")
+        return null
+    }
+
     const normalizedGameName = normalizeGameName(gameName)
 
     let response: AxiosResponse
